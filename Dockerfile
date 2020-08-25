@@ -5,8 +5,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-ENV PORT=8080
-EXPOSE 8080
+ENV PORT=80
+ENV CACHESRV="localhost:11211"
+EXPOSE 80
 
 COPY ./app /app
 ENTRYPOINT ["python"]
