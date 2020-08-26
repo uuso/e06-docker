@@ -4,9 +4,11 @@ docker-flask-cache
 app without docker-compose:
 
 Guide to test app:
+0. Create personal subnet:
+- docker network create my-network
 1. Run the memcached container:
-- docker run --name=my_memc_host --network="host" -d memcached:1.6.6-alpine
+- docker run --name cachesrv-inner --net=my-network -d memcached
 2. build & run flask container:
-- docker build --tag flask:mc-docker .
-- docker run -p 80:80 flask:mc-docker
-3. send GET request to http://hostname/?k=10 -- you should get '34'
+- docker build --tag flask-cached:v0.1 .
+- docker run --name flask-cached --net=my-network -p 80:5001 flask-cached:v0.1
+3. send GET request to http://hostname/?k=1000 -- you should get '268638 ... 74626'
