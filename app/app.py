@@ -20,7 +20,7 @@ cache = Cache(app)
 
 @cache.memoize(timeout=50)
 def fibo_nth(nth):
-        print("in %d" % nth)
+        # print("in %d" % nth)
         if nth <= 1:
                 return 0
         if nth <= 3:

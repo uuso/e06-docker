@@ -1,0 +1,117 @@
+docker at vps
+
+sudo apt update
+
+# пакеты, которые позволят скачивать образы из Dpcker-репозиториев через https:
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+
+# Добавляем ключ GPG (GNU Privacy Guard) официального репозитория Docker:
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+# Добавим репозиторий Docker в список репозиториев, с которыми синхронизируется пакетный менеджер нашей системы:
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable" 
+
+sudo apt-get update
+
+# собственно, докер:
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+# В некоторых версиях Ubuntu пакет containerd.io таким образом нее устанавливается, поэтому его надо установить отдельно предварительно скачав файл для установки:
+# curl -O https://download.docker.com/linux/ubuntu/dists/bionic/pool/edge/amd64/containerd.io_1.2.2-3_amd64.deb
+# sudo apt install ./containerd.io_1.2.2-3_amd64.deb 
+# Когда он установлен, можно устанавливать Docker:
+# sudo apt-get install docker-ce docker-ce-cli
+
+# По умолчанию, сервис Docker требует sudo привилегии, соответственно, все команды к нему нужно будет выполнять с sudo.
+# Однако можно настроить пользователя, который сможет работать с docker без sudo. О том, как это сделать, сказано в документации.
+# https://www.linux.com/tutorials/how-install-and-use-docker-linux/
+
+# Информацию о сервисе можно с помощью команды docker info
+# О состоянии контейнеров в данный момент можно узнать с помощью команды docker ps.
+
+# пробный контейнер docker run hello-world
+
+
+состав докер-файла
+FROM ubuntu:18.04        || python:3.7.6
+ENV PORT 8081
+# нужно для того, чтобы изменения в коде не заставляли контейнер пересобираться.
+COPY ./requirements.txt /app/requirements.txt
+WORKDIR /app
+RUN pip install -r requirements.txt
+COPY ./app/app.py /app/app.py
+ENTRYPOINT ["python"]
+CMD ["app.py"]
+
+# можно собрать контейнер. Находясь в папке с репозиторием это можно сделать с помощью команды:
+docker build -t flask_in_docker:v0.1 .
+
+# список контейнеров
+sudo docker images
+
+# Теперь можно запустить контейнер. Это можно сделать с помощью команды 
+docker run flask_in_docker:v0.1
+docker run  -p 8081:8081 flask_in_docker:v0.1
+# Если мы хотим запустить его в фоне, нужно воспользоваться флагом -d.
+
+docker stop 13ad76ac7cee
+docker start --interactive 13ad76ac7cee
+
+sudo docker ps -a -q # покажет текущий и предыдущие запуски контейнеров
+sudo docker ps -q # позволит вывести айди контейнера для его использования, например, в отображении логов: 
+sudo docker logs $(sudo docker ps -q)
+-f флаг даст слежение за добавлением логов
+
+docker rmi IMAGE_ID - удалит образ
+
+# запуск терминала внутри контейнера
+docker exec --tty --interactive 13ad76ac7cee bash
+
+
+
+
+информация о запущенном контейнере:
+docker inspect 13ad76ac7cee 
+docker inspect --format='{{.Config.Image}}' 13ad76ac7cee
+docker inspect --format='{{.NetworkSettings.IPAddress}}' 13ad76ac7cee
+
+
+Примонтировать существующую папку в контейнер
+docker run --interactive --tty  --mount type=bind,source="$(pwd)"/yet_another_directory,target=/yet_another_directory flask_in_docker:v0.1
+
+
+удалить все неиспользуемые контейнеры (--all - удалить все образы)
+docker system prune
+
+удалить не используемые диски
+docker volume prune
+
+
+
+
+
+
+
+установка docker-compose
+* предварительные зависимости: apt-get install py-pip python-dev libffi-dev openssl-dev gcc libc-dev make
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+
+version: '3.7'
+
+services:
+  flask:
+    build: .
+    volumes:
+      - ./yet_another_directory:/usr/src/yet_another_directory/
+    ports:
+      - 8081:8081
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  db:
+    image: postgres:12-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/

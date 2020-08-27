@@ -1,1 +1,18 @@
-version: "3"
+version: "3.7"
+
+services:
+  flask:
+    build: .
+    ports:
+      - 80:5001
+    environment:
+      - PORT=5001
+# set new CACHESRV envvar:
+      - CACHESRV=cachesrv
+# envvar allows you to print to stdout immediately:
+      - PYTHONUNBUFFERED=TRUEE
+    depends_on:
+      - cachesrv
+
+  cachesrv:
+    image: memcached
