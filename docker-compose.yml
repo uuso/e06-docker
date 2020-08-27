@@ -15,4 +15,4 @@ services:
       - cachesrv
 
   cachesrv:
-    image: memcached
+    image: redis

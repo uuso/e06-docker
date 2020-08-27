@@ -9,11 +9,12 @@ app = Flask(__name__)
 
 config = {
         "DEBUG": True,          # some Flask specific configs
-        "CACHE_TYPE": "memcached", # Flask-Caching related configs
+        "CACHE_TYPE": "redis", # Flask-Caching related configs
+        "CACHE_KEY_PREFIX": "flask-hw-e06:",
         "CACHE_DEFAULT_TIMEOUT": 300,
-        "CACHE_MEMCACHED_SERVERS": [getenv("CACHESRV"),],
-        "CACHE_KEY_PREFIX": "flask-hw-e06:"
+        "CACHE_REDIS_HOST": getenv("CACHESRV"),
 }
+
 app.config.from_mapping(config)
 cache = Cache(app)
 
